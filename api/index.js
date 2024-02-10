@@ -4,12 +4,15 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const User = require('./models/User');
 const bcryptjs = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-app.use(cors());
+app.use(cors({credentials:true,origin:'http://localhost:3000'}));
 app.use(express.json());
 
 //used for hashing password
 const salt = bcryptjs.genSaltSync(10);
+//for jwt
+const secret = 'csef8w948wrkjwrk38udoad9';
 
 mongoose.connect('mongodb+srv://ajayvinjamuri013:HtdOkZnTLiMIvaFS@cluster0.2smiiur.mongodb.net/?retryWrites=true&w=majority')
 
@@ -34,7 +37,11 @@ app.post('/login', async (req, res)=>{
     const userDoc = await User.findOne({username});
     const passwordOk = bcryptjs.compareSync(password, userDoc.password);
     if(passwordOk){
-
+        //using callback
+        const token = jwt.sign({username,id: userDoc._id},secret);//,{},(error, token)=>{
+            //if(err) throw err;
+            res.cookie('token',token).json('ok!');
+        //});
     }
     else{
         res.status(400).json("invalid credentials.")
