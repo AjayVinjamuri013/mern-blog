@@ -5,9 +5,11 @@ const mongoose = require('mongoose');
 const User = require('./models/User');
 const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 
 app.use(cors({credentials:true,origin:'http://localhost:3000'}));
 app.use(express.json());
+app.use(cookieParser());
 
 //used for hashing password
 const salt = bcryptjs.genSaltSync(10);
@@ -47,5 +49,16 @@ app.post('/login', async (req, res)=>{
         res.status(400).json("invalid credentials.")
     }
 })
+
+app.get("/profile", (req, res)=>{
+    const {token} = req.cookies;
+    const info = jwt.verify(token, secret, {})
+    res.json(info);
+})
+
+app.post('/logout', (req, res)=>{
+    res.cookie('token','').json('ok!');
+})
+
 
 app.listen(4000);
