@@ -42,7 +42,10 @@ app.post('/login', async (req, res)=>{
         //using callback
         const token = jwt.sign({username,id: userDoc._id},secret);//,{},(error, token)=>{
             //if(err) throw err;
-            res.cookie('token',token).json('ok!');
+            res.cookie('token',token).json({
+                id: userDoc._id,
+                username,
+            });
         //});
     }
     else{
