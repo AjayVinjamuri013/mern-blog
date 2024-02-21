@@ -70,6 +70,7 @@ app.post('/logout', (req, res)=>{
     res.cookie('token','').json('ok!');
 })
 
+//For creating new post
 app.post('/post',uploadMiddleware.single('file'),async (req, res)=>{
     const {originalname, path} = req.file; 
     const parts = originalname.split('.');
@@ -93,6 +94,37 @@ app.post('/post',uploadMiddleware.single('file'),async (req, res)=>{
     res.json(postDoc);
 })
 
+//For editing a post
+app.put('/post', uploadMiddleware.single('file'), async (req, res) => {
+    let newPath = null;
+    if(req.file) {
+        const {originalname, path} = req.file; 
+        const parts = originalname.split('.');
+        const ext = parts[parts.length-1];
+        newPath = path+"."+ext;
+        fs.renameSync(path, newPath);
+    }
+
+    const {token} = req.cookies;
+    const info = jwt.verify(token, secret, {})
+    const {id, title, summary, content} = req.body;
+    const postDoc = await Post.findById(id);
+    const isAuthor = JSON.stringify(postDoc.author) === JSON.stringify(info.id);
+    if(!isAuthor){
+        return res.status(400).json("You are not the author for this post!")
+    }
+
+    await postDoc.updateOne({
+        title,
+        summary,
+        content,
+        //We are updating only if new path is there.
+        //If there is no new file that is updated, we are setting the cover to previous cover.
+        cover: newPath ? newPath : postDoc.cover,
+    })
+    res.json(postDoc);
+})
+//For getting all the posts in db
 app.get('/post',async (req, res)=>{
     res.json(
         await Post.find()
