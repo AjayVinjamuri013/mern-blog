@@ -25,7 +25,9 @@ export default function LoginPage(){
             })
         }
         else{
-            alert('Wrong credentials!')
+                response.json().then(res => {
+                    alert(res.msg);
+                })
         }
     }
 

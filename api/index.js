@@ -44,19 +44,28 @@ app.post('/register',async (req, res)=>{
 app.post('/login', async (req, res)=>{
     const {username, password} = req.body;
     const userDoc = await User.findOne({username});
-    const passwordOk = bcryptjs.compareSync(password, userDoc.password);
-    if(passwordOk){
-        //using callback
-        const token = jwt.sign({username,id: userDoc._id},secret);//,{},(error, token)=>{
-            //if(err) throw err;
-            res.cookie('token',token).json({
-                id: userDoc._id,
-                username,
-            });
-        //});
+    let msg ='';
+    //console.log(userDoc)
+    if(userDoc === null){
+        msg = "User not registered."
+        res.status(400).json({msg})
     }
     else{
-        res.status(400).json("invalid credentials.")
+        const passwordOk = bcryptjs.compareSync(password, userDoc.password);
+        if(passwordOk){
+            //using callback
+            const token = jwt.sign({username,id: userDoc._id},secret);//,{},(error, token)=>{
+                //if(err) throw err;
+                res.cookie('token',token).json({
+                    id: userDoc._id,
+                    username,
+                });
+            //});
+        }
+        else{
+            msg = "Invalid credentials."
+            res.status(400).json({msg})            
+        }
     }
 })
 
